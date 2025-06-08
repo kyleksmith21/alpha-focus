@@ -6,255 +6,283 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
+    /* =============================================
+   Alpha Focus – Modernized CSS (June 2025)
+   — Sleek, minimal & fully responsive —
+   ============================================= */
+
+  /* Custom properties — tweak once, theme everywhere */
+  :root {
+    /* palette */
+    --clr-primary-h: 220;
+    --clr-primary-s: 100%;
+    --clr-primary-l: 55%;
+    --clr-primary: hsl(var(--clr-primary-h) var(--clr-primary-s) var(--clr-primary-l));
+    --clr-bg: #f7f9fc;
+    --clr-surface: #ffffff;
+    --clr-surface-alt: #dfe2e6;
+    --clr-text: #0f1a2c;
+  
+    --clr-success: #2ecc71;
+    --clr-warning: #ffd43b;
+    --clr-error:   #e74c3c;
+  
+    --radius-xl: 1.5rem;
+    --radius-md: .75rem;
+  
+    /* elevation */
+    --shadow-sm: 0 2px 6px rgb(16 22 26 / .06);
+    --shadow-md: 0 6px 24px rgb(16 22 26 / .12);
+  
+    /* tile size */
+    --tile: 3rem;
+    --transition: .35s cubic-bezier(.45,.02,.6,1.01);
+  }
+  
+  /* Dark‑mode support */
+  @media (prefers-color-scheme: dark) {
     :root {
-      --primary: #0066ff;
-      --status-green: #43d48a;
-      --status-yellow: #ffd43b;
-      --status-gray: #e2e2e2;
-      --tile-front: #fff;
-      --tile-back: #dfe2e6;
-      --correct: #2ecc71;
-      --wrong: #e74c3c;
-      --modal-bg: rgba(0, 0, 0, 0.7);
+      --clr-bg: #12141b;
+      --clr-surface: #1e212c;
+      --clr-surface-alt: #353946;
+      --clr-text: #eef1f5;
+      --shadow-sm: 0 2px 6px rgb(0 0 0 / .35);
+      --shadow-md: 0 8px 32px rgb(0 0 0 / .4);
     }
+  }
+  
+  /* Reset & base styles */
+  *, *::before, *::after { box-sizing: border-box; }
+  
+  html      { height: 100%; font-size: clamp(15px, 1.05vw + .25rem, 18px); }
+  
+  body {
+    min-height: 100%;
+    margin: 0;
+    padding-block: 5.5rem;        /* room for sticky ads */
+    font-family: "Inter", system-ui, sans-serif;
+    line-height: 1.55;
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Headings */
+  h1, h2 {
+    font-weight: 600;
+    letter-spacing: .02em;
+    margin-block: 0 1.4rem;
+  }
+  
+  h1 { text-align: center; font-size: 2rem; }
+  
+  /* Advert placeholders — collapse on small viewports */
+  .ad-placeholder,
+  .ad-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .85rem;
+    font-weight: 500;
+    color: #5f6878;
+    background: var(--clr-surface-alt);
+    border: 2px dashed #c3c5c9;
+  }
+  
+  #ad-top, #ad-bottom {
+    position: fixed;
+    inset-inline: 0;
+    height: 4.5rem;
+    z-index: 120;
+  }
+  
+  #ad-top    { top: 0; }
+  #ad-bottom { bottom: 0; }
+  
+  .ad-side {
+    position: fixed;
+    top: 50%;
+    width: 5.625rem;             /* 90px */
+    height: 25rem;               /* 400px */
+    transform: translateY(-50%);
+    z-index: 120;
+  }
+  
+  #ad-left  { left: 0; }
+  #ad-right { right: 0; }
+  
+  @media (max-width: 900px) {
+    .ad-side { display: none; }
+  }
+  @media (max-width: 600px) {
+    #ad-top, #ad-bottom { display: none; }
+    body { padding-block: 2rem; }
+  }
+  
+  /* === Card (game container) === */
+  .card {
+    width: min(100%, 38rem);
+    margin-inline: auto;
+    background: var(--clr-surface);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem 1.75rem 3.5rem;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Status bar — dots */
+  .status-bar {
+    display: grid;
+    grid-template-columns: repeat(26, 1fr);
+    gap: .35rem;
+    margin-block: 1.25rem 1.75rem;
+    max-width: 22rem;
+    margin-inline: auto;
+  }
+  
+  .dot {
+    aspect-ratio: 1/1;
+    border-radius: .65rem;
+    background: #e2e2e2;
+    border: 1px solid #dbdbdb;
+  }
+  
+  .dot.green  { background: var(--clr-success); border-color: var(--clr-success); }
+  .dot.yellow { background: var(--clr-warning); border-color: var(--clr-warning); }
+  
+  /* Sequence tiles */
+  #sequence-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: center;
+    min-height: var(--tile);
+  }
+  
+  .tile {
+    width: var(--tile);
+    height: var(--tile);
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform var(--transition);
+  }
+  
+  .face {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1.25rem;
+    user-select: none;
+    backface-visibility: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .front { background: var(--clr-surface); }
+  .back  { background: var(--clr-surface-alt); transform: rotateY(180deg); }
+  
+  .flipped { transform: rotateY(180deg); }
+  
+  .correct { background: var(--clr-success) !important; color: #fff !important; }
+  .wrong   { background: var(--clr-error) !important;   color: #fff !important; }
+  
+  /* Buttons */
+  .btn,
+  .modal-btn {
+    display: inline-block;
+    width: min(12rem, 80%);
+    padding-block: .7rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 0;
+    border-radius: var(--radius-md);
+    color: #fff;
+    cursor: pointer;
+    background: var(--clr-primary);
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s ease, box-shadow .25s ease;
+    text-align: center;
+  }
+  
+  .btn:hover,
+  .modal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgb(0 0 0 / .15);
+  }
+  
+  .btn:active,
+  .modal-btn:active { transform: translateY(0); }
+  
+  .btn.hide { display: none !important; }
+  
+  /* Modals */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / .6);
+    display: grid;
+    place-content: center;
+    z-index: 110;
+    padding: 1.5rem;
+  }
+  
+  .modal {
+    background: var(--clr-surface);
+    border-radius: var(--radius-lg, 1rem);
+    width: min(90vw, 24rem);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+  }
+  
+  /* How‑to demo */
+  .tiles-demo {
+    display: flex;
+    gap: .35rem;
+    justify-content: center;
+    margin-block: .4rem;
+  }
+  
+  .tile-demo {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: .55rem;
+    display: grid;
+    place-content: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 1.5px solid #eee;
+    background: #fafbfc;
+    color: var(--clr-text);
+  }
+  
+  .tile-demo.correct { background: var(--clr-success); color: #fff; }
+  .tile-demo.wrong   { background: var(--clr-error);   color: #fff; }
+  
+  /* Letter ribbons in loss modal */
+  .letter {
+    display: inline-block;
+    padding: .4rem .5rem;
+    margin: .15rem;
+    border-radius: .5rem;
+    font-weight: 600;
+  }
+  
+  .letter.correct { background: var(--clr-success); color: #fff; }
+  .letter.wrong   { background: var(--clr-error);   color: #fff; }
+  
+  /* Utility */
+  .hide { display: none !important; }
+  
+  /* Motion reduction */
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      background: #f5f7fa;
-      min-height: 100vh;
-    }
-
-    body {
-      padding-top: 85px;
-      padding-bottom: 85px;
-    }
-
-    h1 {
-      margin: 0 0 24px;
-      text-align: center;
-      font-weight: 600;
-      color: #0e2340;
-      letter-spacing: .03em;
-    }
-
-    /* Ads */
-    .ad-placeholder {
-      background: var(--tile-back);
-      border: 2px dashed #c3c5c9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #666;
-      font-size: 14px;
-    }
-
-    #ad-top, #ad-bottom {
-      position: fixed;
-      left: 0;
-      width: 100%;
-      height: 70px;
-      z-index: 120;
-    }
-
-    #ad-top { top: 0; }
-    #ad-bottom { bottom: 0; }
-
-    .ad-side {
-      position: fixed;
-      top: 50%;
-      width: 90px;
-      height: 400px;
-      transform: translateY(-50%);
-      background: var(--tile-back);
-      border: 2px dashed #c3c5c9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 120;
-      color: #666;
-      font-size: 14px;
-    }
-
-    #ad-left { left: 0; }
-    #ad-right { right: 0; }
-
-    /* Game Card */
-    .card {
-      width: 100%;
-      max-width: 600px;
-      margin: 32px auto;
-      background: #fff;
-      border-radius: 24px;
-      box-shadow: 0 8px 40px rgba(30, 30, 80, .12);
-      padding: 32px 24px 48px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Status bar */
-    .status-bar {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      margin: 18px 0;
-    }
-
-    .dot {
-      width: 22px;
-      height: 22px;
-      border-radius: 7px;
-      background: var(--status-gray);
-      border: 1px solid #ddd;
-    }
-
-    .dot.green {
-      background: var(--status-green);
-      border-color: var(--status-green);
-    }
-
-    .dot.yellow {
-      background: var(--status-yellow);
-      border-color: var(--status-yellow);
-    }
-
-    /* Tiles */
-    #sequence-tiles {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-      min-height: 56px;
-    }
-
-    .tile {
-      width: 48px;
-      height: 48px;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform .4s cubic-bezier(.45, .02, .6, 1.01);
-    }
-
-    .face {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 20px;
-      backface-visibility: hidden;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, .07);
-    }
-
-    .front {
-      background: var(--tile-front);
-      color: #111;
-    }
-
-    .back {
-      background: var(--tile-back);
-      color: #111;
-      transform: rotateY(180deg);
-    }
-
-    .flipped { transform: rotateY(180deg); }
-    .correct { background: var(--correct) !important; color: #fff !important; }
-    .wrong { background: var(--wrong) !important; color: #fff !important; }
-
-    /* Buttons */
-    .btn {
-      display: block;
-      margin: 16px auto 0;
-      padding: 11px 0;
-      width: 200px;
-      font-size: 1.05em;
-      font-weight: 500;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .hide { display: none !important; }
-
-    /* Modal */
-    .modal-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: var(--modal-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 110;
-    }
-
-    .modal {
-      background: #fff;
-      border-radius: 16px;
-      max-width: 380px;
-      width: 90vw;
-      padding: 28px 22px;
-      text-align: center;
-      box-shadow: 0 16px 48px rgba(10, 20, 80, .15);
-    }
-
-    .modal-btn {
-      margin-top: 14px;
-      padding: 11px 0;
-      width: 78%;
-      max-width: 230px;
-      font-size: 1.05em;
-      font-weight: 500;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    /* How‑to examples */
-    .tiles-demo {
-      display: flex;
-      gap: 5px;
-      justify-content: center;
-      margin: 6px 0;
-    }
-
-    .tile-demo {
-      width: 36px;
-      height: 36px;
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 18px;
-      border: 1.5px solid #eee;
-      background: #fafbfc;
-      color: #222;
-    }
-
-    .tile-demo.correct { background: var(--correct); color: #fff; }
-    .tile-demo.wrong { background: var(--wrong); color: #fff; }
-
-    .letter {
-      display: inline-block;
-      padding: 4px 6px;
-      border-radius: 6px;
-      margin: 2px;
-      font-weight: 600;
-    }
-
-    .letter.correct { background: var(--correct); color: #fff; }
-    .letter.wrong { background: var(--wrong); color: #fff; }
   </style>
 </head>
 
