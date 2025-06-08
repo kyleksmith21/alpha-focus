@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alpha Focus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0066ff;
+      --status-green: #43d48a;
+      --status-yellow: #ffd43b;
+      --status-gray: #e2e2e2;
+      --tile-front: #fff;
+      --tile-back: #dfe2e6;
+      --correct: #2ecc71;
+      --wrong: #e74c3c;
+      --modal-bg: rgba(0, 0, 0, 0.7);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    body {
+      padding-top: 85px;
+      padding-bottom: 85px;
+    }
+
+    h1 {
+      margin: 0 0 24px;
+      text-align: center;
+      font-weight: 600;
+      color: #0e2340;
+      letter-spacing: .03em;
+    }
+
+    /* Ads */
+    .ad-placeholder {
+      background: var(--tile-back);
+      border: 2px dashed #c3c5c9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 14px;
+    }
+
+    #ad-top, #ad-bottom {
+      position: fixed;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      z-index: 120;
+    }
+
+    #ad-top { top: 0; }
+    #ad-bottom { bottom: 0; }
+
+    .ad-side {
+      position: fixed;
+      top: 50%;
+      width: 90px;
+      height: 400px;
+      transform: translateY(-50%);
+      background: var(--tile-back);
+      border: 2px dashed #c3c5c9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 120;
+      color: #666;
+      font-size: 14px;
+    }
+
+    #ad-left { left: 0; }
+    #ad-right { right: 0; }
+
+    /* Game Card */
+    .card {
+      width: 100%;
+      max-width: 600px;
+      margin: 32px auto;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 40px rgba(30, 30, 80, .12);
+      padding: 32px 24px 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin: 18px 0;
+    }
+
+    .dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      background: var(--status-gray);
+      border: 1px solid #ddd;
+    }
+
+    .dot.green {
+      background: var(--status-green);
+      border-color: var(--status-green);
+    }
+
+    .dot.yellow {
+      background: var(--status-yellow);
+      border-color: var(--status-yellow);
+    }
+
+    /* Tiles */
+    #sequence-tiles {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      min-height: 56px;
+    }
+
+    .tile {
+      width: 48px;
+      height: 48px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform .4s cubic-bezier(.45, .02, .6, 1.01);
+    }
+
+    .face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 20px;
+      backface-visibility: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .07);
+    }
+
+    .front {
+      background: var(--tile-front);
+      color: #111;
+    }
+
+    .back {
+      background: var(--tile-back);
+      color: #111;
+      transform: rotateY(180deg);
+    }
+
+    .flipped { transform: rotateY(180deg); }
+    .correct { background: var(--correct) !important; color: #fff !important; }
+    .wrong { background: var(--wrong) !important; color: #fff !important; }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      margin: 16px auto 0;
+      padding: 11px 0;
+      width: 200px;
+      font-size: 1.05em;
+      font-weight: 500;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .hide { display: none !important; }
+
+    /* Modal */
+    .modal-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--modal-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 110;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 380px;
+      width: 90vw;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(10, 20, 80, .15);
+    }
+
+    .modal-btn {
+      margin-top: 14px;
+      padding: 11px 0;
+      width: 78%;
+      max-width: 230px;
+      font-size: 1.05em;
+      font-weight: 500;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* How‑to examples */
+    .tiles-demo {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      margin: 6px 0;
+    }
+
+    .tile-demo {
+      width: 36px;
+      height: 36px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 18px;
+      border: 1.5px solid #eee;
+      background: #fafbfc;
+      color: #222;
+    }
+
+    .tile-demo.correct { background: var(--correct); color: #fff; }
+    .tile-demo.wrong { background: var(--wrong); color: #fff; }
+
+    .letter {
+      display: inline-block;
+      padding: 4px 6px;
+      border-radius: 6px;
+      margin: 2px;
+      font-weight: 600;
+    }
+
+    .letter.correct { background: var(--correct); color: #fff; }
+    .letter.wrong { background: var(--wrong); color: #fff; }
+  </style>
+</head>
+
+<body>
+  <div id="ad-top" class="ad-placeholder">[Ad]</div>
+  <div id="ad-bottom" class="ad-placeholder">[Ad]</div>
+  <div id="ad-left" class="ad-side">[Ad]</div>
+  <div id="ad-right" class="ad-side">[Ad]</div>
+
+  <div class="card">
+    <!-- How‑to Modal -->
+    <div id="howto" class="modal-bg">
+      <div class="modal">
+        <h2>How to Play</h2>
+        <p>Memorize a growing sequence of <b>unique</b> letters (A‑Z). Reach 26 to win!</p>
+        <p style="text-align:left; line-height:1.5; font-size:.95em">
+          • Tiles flip in, stay <b>2.5 s</b><br>
+          • Type them & press <b>Enter</b><br>
+          • Wrong letter? Game restarts; best run stays yellow
+        </p>
+        <div style="margin: 8px 0">
+          <strong>Correct Example</strong>
+          <div class="tiles-demo">
+            <div class="tile-demo">A</div>
+            <div class="tile-demo">B</div>
+            <div class="tile-demo">C</div>
+          </div>
+          <div class="tiles-demo">
+            <div class="tile-demo correct">A</div>
+            <div class="tile-demo correct">B</div>
+            <div class="tile-demo correct">C</div>
+          </div>
+        </div>
+        <div style="margin: 8px 0">
+          <strong>Incorrect Example</strong>
+          <div class="tiles-demo">
+            <div class="tile-demo">A</div>
+            <div class="tile-demo">B</div>
+            <div class="tile-demo">C</div>
+          </div>
+          <div class="tiles-demo">
+            <div class="tile-demo correct">A</div>
+            <div class="tile-demo correct">B</div>
+            <div class="tile-demo wrong">D</div>
+          </div>
+        </div>
+        <button id="start-btn" class="modal-btn">Start Game</button>
+      </div>
+    </div>
+
+    <!-- Loss Modal -->
+    <div id="loss-modal" class="modal-bg hide">
+      <div class="modal" id="loss-content"></div>
+    </div>
+
+    <h1>Alpha Focus</h1>
+    <div id="status-bar" class="status-bar"></div>
+    <p id="msg" style="text-align:center; font-weight:600; color:#0066ff"></p>
+    <div id="sequence-tiles"></div>
+    <button id="submit-btn" class="btn hide">Submit</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const alphabet = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+    const howto = document.getElementById('howto');
+    const startBtn = document.getElementById('start-btn');
+    const lossModal = document.getElementById('loss-modal');
+    const lossContent = document.getElementById('loss-content');
+    const bar = document.getElementById('status-bar');
+    const tilesCon = document.getElementById('sequence-tiles');
+    const submitBtn = document.getElementById('submit-btn');
+    const msg = document.getElementById('msg');
+
+    let seq = [], input = [], used = new Set();
+    let inputOn = false, visible = 2500, streak = 0, high = 0, flip = 500;
+
+    startBtn.onclick = () => {
+      howto.classList.add('hide');
+      resetGame();
+    };
+
+    function resetGame() {
+      seq = [nextLetter()];
+      streak = 0;
+      used.clear();
+      updateBar(0, high);
+      msg.textContent = '';
+      build();
+    }
+
+    function nextLetter() {
+      used = new Set(seq);  // 💡 ensure 'used' tracks full sequence
+      const pool = alphabet.filter(l => !used.has(l));
+      const n = pool[Math.floor(Math.random() * pool.length)];
+      used.add(n);
+      return n;
+    }
+
+    function updateBar(cur, rec) {
+      bar.innerHTML = '';
+      for (let i = 1; i <= 26; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot';
+        if (i <= cur) d.classList.add('green');
+        else if (i <= rec) d.classList.add('yellow');
+        bar.appendChild(d);
+      }
+    }
+
+    function build() {
+      tilesCon.innerHTML = '';
+      seq.forEach((l, i) => {
+        tilesCon.innerHTML += `
+          <div class='tile flipped'>
+            <div class='face front'>${l}</div>
+            <div class='face back' id='b${i}'></div>
+          </div>`;
+      });
+      setTimeout(reveal, 200);
+    }
+
+    function reveal() {
+      [...document.querySelectorAll('.tile')].forEach((t, i) =>
+        setTimeout(() => {
+          t.classList.remove('flipped');
+          if (i === seq.length - 1) setTimeout(hideTiles, visible);
+        }, i * flip)
+      );
+    }
+
+    function hideTiles() {
+      document.querySelectorAll('.tile').forEach(t => t.classList.add('flipped'));
+      inputOn = true;
+      document.addEventListener('keydown', key);
+      submitBtn.classList.remove('hide');
+      submitBtn.disabled = true;
+    }
+
+    function key(e) {
+      if (!inputOn) return;
+      const k = e.key.toUpperCase();
+      if (/^[A-Z]$/.test(k) && input.length < seq.length) {
+        input.push(k);
+        document.getElementById('b' + (input.length - 1)).textContent = k;
+        if (input.length === seq.length) submitBtn.disabled = false;
+      } else if (e.key === 'Backspace' && input.length) {
+        input.pop();
+        document.getElementById('b' + input.length).textContent = '';
+        submitBtn.disabled = true;
+      } else if (e.key === 'Enter' && !submitBtn.disabled) {
+        check();
+      }
+    }
+
+    submitBtn.onclick = check;
+
+    function colorTiles() {
+      seq.forEach((l, i) => {
+        const b = document.getElementById('b' + i);
+        b.classList.add(input[i] === l ? 'correct' : 'wrong');
+      });
+    }
+
+    function check() {
+      inputOn = false;
+      document.removeEventListener('keydown', key);
+      submitBtn.disabled = true;
+      colorTiles();
+      const correct = seq.every((l, i) => l === input[i]);
+      if (correct) {
+        streak = seq.length;
+        msg.textContent = `Nice job! On to Round ${streak + 1}`;
+        updateBar(streak, high);
+        if (streak === 26) {
+          msg.textContent = '🎉 Congratulations! You mastered all 26 letters!';
+          confetti();
+          setTimeout(() => {
+            const winMsg = `
+              <h2>🎉 You Win!</h2>
+              <div style='margin: 8px 0'>You mastered all 26 letters.</div>
+              <button class='modal-btn' id='retry'>Play Again</button>`;
+            lossContent.innerHTML = winMsg;
+            lossModal.classList.remove('hide');
+            document.getElementById('retry').onclick = () => {
+              lossModal.classList.add('hide');
+              used.clear();
+              seq = [nextLetter()];
+              input = [];
+              streak = 0;
+              updateBar(0, high);
+              build();
+            };
+          }, 1000);
+        } else {
+          setTimeout(() => {
+            seq.push(nextLetter());
+            input = [];
+            build();
+          }, 900);
+        }
+        return;
+      }
+
+      if (streak > high) high = streak;
+      updateBar(0, high);
+      showLoss();
+    }
+
+    function showLoss() {
+      const lettersHTML = seq.map((l, i) =>
+        `<span class='letter ${input[i] === l ? 'correct' : 'wrong'}'>${l}</span>`
+      ).join('');
+      const recordMsg = streak === high && streak !== 0 ? 'New Record!' : 'Nice try!';
+      lossContent.innerHTML = `
+        <h2>${recordMsg}</h2>
+        <div style='margin: 8px 0'>${lettersHTML}</div>
+        <button class='modal-btn' id='retry'>Try Again</button>`;
+      lossModal.classList.remove('hide');
+      document.getElementById('retry').onclick = () => {
+        lossModal.classList.add('hide');
+        used.clear();               // 💡 clear used letters
+        seq = [nextLetter()];
+        input = [];
+        streak = 0;
+        updateBar(0, high);
+        build();
+      };
+    }
+
+    function confetti() {
+      window.confetti && window.confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: .6 }
+      });
+    }
+  </script>
+</body>
+</html>
